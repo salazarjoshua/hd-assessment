@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
+import type { PutBlobResult } from '@vercel/blob';
 import Image from 'next/image';
 import {
     Dialog,
@@ -12,17 +13,9 @@ import {
     DialogTrigger,
     DialogFooter
 } from "@/components/ui/dialog"
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-  } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import FileList from './FileList';
 
 
 
@@ -33,6 +26,7 @@ const FileUpload: React.FC = () => {
     const [dogImage, setDogImage] = useState<string | null>(null);
     const [statusMessage, setStatusMessage] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [blobs, setBlobs] = useState<PutBlobResult[]>([]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(event.target.files || []);
@@ -64,7 +58,8 @@ const FileUpload: React.FC = () => {
         }
     };
 
-    const handleUpload = async () => {
+    const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
         if (files.length === 0) return;
 
         try {
@@ -72,23 +67,30 @@ const FileUpload: React.FC = () => {
             const startDogImage = await fetchDogImage();
             setDogImage(startDogImage);
             setStatusMessage('Uploading ⌛️');
-            await new Promise(resolve => setTimeout(resolve, 3000)); // Add delay
+
+            const uploadedBlobs: PutBlobResult[] = [];
 
             for (const file of files) {
-                const formData = new FormData();
-                formData.append('file', file);
-
-                await fetch('/api/upload', {
+                const response = await fetch(`/api/file?filename=${file.name}`, {
                     method: 'POST',
-                    body: formData
+                    body: file,
                 });
+
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+
+                const newBlob = (await response.json()) as PutBlobResult;
+                uploadedBlobs.push(newBlob);
             }
+
+            setBlobs(uploadedBlobs);
 
             // Uploading done: fetch a new dog image
             const successDogImage = await fetchDogImage();
             setDogImage(successDogImage);
             setStatusMessage('Upload done ✅');
-            await new Promise(resolve => setTimeout(resolve, 3000)); // Add delay
+            // await new Promise(resolve => setTimeout(resolve, 3000)); // Add delay
 
             // Clear files after successful upload
             setFiles([]);
@@ -100,38 +102,38 @@ const FileUpload: React.FC = () => {
             const failDogImage = await fetchDogImage();
             setDogImage(failDogImage);
             setStatusMessage('Upload failed ⚠️❌🚨');
-            await new Promise(resolve => setTimeout(resolve, 3000)); // Add delay
             setErrorFiles(['Upload failed. Please try again.']);
             setIsOpen(true);
         }
     };
 
     return (
-        <div>
-            <div className="flex gap-4">
+        <div className='w-full max-w-[600px] flex flex-col gap-4'>
+            <form className="flex gap-4 mx-auto" onSubmit={handleUpload}>
                 <Input type="file" multiple onChange={handleFileChange} ref={fileInputRef} />
-                <Button onClick={handleUpload} disabled={files.length === 0}>Upload</Button>
-            </div>
+                <Button disabled={files.length === 0} type='submit'>Upload</Button>
+            </form>
+
             {dogImage && (
-                <div className="mt-4 flex items-center justify-center flex-col">
-                    <Image src={dogImage} 
-                    alt="Dog" className="w-40 h-40 object-cover bg-slate-100 rounded-xl" 
-                    width={128}
-                    height={128}                    />
+                <div className="mt-4 flex items-center justify-center gap-4">
+                    <Image src={dogImage} alt="Dog" className="size-10 object-cover bg-slate-100 rounded-lg" width={128} height={128} />
                     <p>{statusMessage}</p>
                 </div>
             )}
+
+            {blobs.length > 0 && <FileList blobs={blobs} />}
+
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger />
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Upload Error</DialogTitle>
                         <DialogDescription>
-                            <p>These files are over 5mb</p>
+                            <p>These files are over 5MB:</p>
                             <ul className="list-disc list-inside">
-                                {errorFiles?.map((file, index) =>
+                                {errorFiles?.map((file, index) => (
                                     <li key={index}>{file}</li>
-                                )}
+                                ))}
                             </ul>
                         </DialogDescription>
                     </DialogHeader>
