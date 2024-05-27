@@ -90,7 +90,6 @@ const FileUpload: React.FC = () => {
             const successDogImage = await fetchDogImage();
             setDogImage(successDogImage);
             setStatusMessage('Upload done ✅');
-            // await new Promise(resolve => setTimeout(resolve, 3000)); // Add delay
 
             // Clear files after successful upload
             setFiles([]);
@@ -129,7 +128,12 @@ const FileUpload: React.FC = () => {
                     <DialogHeader>
                         <DialogTitle>Upload Error</DialogTitle>
                         <DialogDescription>
-                            <p>These files are over 5MB:</p>
+                            {statusMessage === 'Upload failed ⚠️❌🚨' ?
+                                null
+                                :
+                                <p>These files are over 5MB:</p>
+                            }
+
                             <ul className="list-disc list-inside">
                                 {errorFiles?.map((file, index) => (
                                     <li key={index}>{file}</li>
