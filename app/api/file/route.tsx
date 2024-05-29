@@ -8,6 +8,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (filename && request.body) {
     const blob = await put(filename, request.body, {
       access: 'public',
+      addRandomSuffix: false,
     });
 
     return NextResponse.json(blob);
