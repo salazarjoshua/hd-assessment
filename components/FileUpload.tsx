@@ -114,9 +114,7 @@ const FileUpload: React.FC = () => {
     return (
         <div className='w-full max-w-[600px] flex flex-col gap-4'>
             {dogImage && (
-                <div className="mt-4 flex items-center justify-center gap-4">
-                    <Image src={dogImage} alt="Dog" className="size-10 object-cover bg-slate-100 rounded-lg" width={128} height={128} />
-                </div>
+                <Image src={dogImage} alt="Dog" className="absolute bottom-4 right-4 size-40 object-cover bg-slate-100 rounded-lg" width={128} height={128} />
             )}
 
             <form className="flex gap-4 mx-auto" onSubmit={handleUpload}>
