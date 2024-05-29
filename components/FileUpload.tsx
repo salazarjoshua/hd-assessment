@@ -15,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import FileList from './FileList';
+import { toast } from "sonner"
+
 
 
 
@@ -53,6 +55,9 @@ const FileUpload: React.FC = () => {
             return data.message;
         } catch (error) {
             console.error('Error fetching dog image:', error);
+            toast.error('Error fetching dog image', {
+                description: `${error}`,
+            })
             return null;
         }
     };
@@ -65,7 +70,7 @@ const FileUpload: React.FC = () => {
             // Uploading begins: fetch a dog image
             const startDogImage = await fetchDogImage();
             setDogImage(startDogImage);
-            setStatusMessage('Uploading ⌛️');
+            toast("Uploading ⌛️")
 
             const uploadedBlobs: PutBlobResult[] = [];
 
@@ -88,7 +93,7 @@ const FileUpload: React.FC = () => {
             // Uploading done: fetch a new dog image
             const successDogImage = await fetchDogImage();
             setDogImage(successDogImage);
-            setStatusMessage('Upload done ✅');
+            toast.success("Upload done")
 
             // Clear files after successful upload
             setFiles([]);
@@ -99,7 +104,8 @@ const FileUpload: React.FC = () => {
             // Uploading error: fetch a new dog image
             const failDogImage = await fetchDogImage();
             setDogImage(failDogImage);
-            setStatusMessage('Upload failed ⚠️❌🚨');
+            toast.error('Upload failed')
+            setStatusMessage('Upload failed');
             setErrorFiles(['Upload failed. Please try again.']);
             setIsOpen(true);
         }
@@ -107,17 +113,16 @@ const FileUpload: React.FC = () => {
 
     return (
         <div className='w-full max-w-[600px] flex flex-col gap-4'>
+            {dogImage && (
+                <div className="mt-4 flex items-center justify-center gap-4">
+                    <Image src={dogImage} alt="Dog" className="size-10 object-cover bg-slate-100 rounded-lg" width={128} height={128} />
+                </div>
+            )}
+
             <form className="flex gap-4 mx-auto" onSubmit={handleUpload}>
                 <Input type="file" multiple onChange={handleFileChange} ref={fileInputRef} />
                 <Button disabled={files.length === 0} type='submit'>Upload</Button>
             </form>
-
-            {dogImage && (
-                <div className="mt-4 flex items-center justify-center gap-4">
-                    <Image src={dogImage} alt="Dog" className="size-10 object-cover bg-slate-100 rounded-lg" width={128} height={128} />
-                    <p>{statusMessage}</p>
-                </div>
-            )}
 
             {blobs.length > 0 && <FileList blobs={blobs} />}
 
@@ -127,7 +132,7 @@ const FileUpload: React.FC = () => {
                     <DialogHeader>
                         <DialogTitle>Upload Error</DialogTitle>
                         <DialogDescription>
-                            {statusMessage === 'Upload failed ⚠️❌🚨' ?
+                            {statusMessage === 'Upload failed' ?
                                 null
                                 :
                                 <p>These files are over 5MB:</p>
