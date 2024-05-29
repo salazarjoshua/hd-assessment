@@ -77,10 +77,10 @@ const RenameButton = ({pathname, fromUrl} : Props) => {
                     <DialogFooter>
                         <DialogClose asChild>
                             <Button type="button" variant="secondary">
-                                Close
+                                Cancel
                             </Button>
                         </DialogClose>
-                        <Button type="button" onClick={handleRename}>Save changes</Button>
+                        <Button type="button" onClick={handleRename}>Save</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
