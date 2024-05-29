@@ -14,41 +14,57 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 type Props = {
     pathname: string;
     fromUrl: string;
 }
 
-const RenameButton = ({pathname, fromUrl} : Props) => {
+const RenameButton = ({ pathname, fromUrl }: Props) => {
+    const [open, setOpen] = useState(false);
     const [newName, setNewName] = useState(pathname);
 
     const handleRename = async () => {
-        await fetch(`/api/rename`, {
-            method: "PUT",
-            body: JSON.stringify({
-                fromUrl: fromUrl,
-                toPathname: newName,
+        try {
+            await fetch(`/api/rename`, {
+                method: "PUT",
+                body: JSON.stringify({
+                    fromUrl: fromUrl,
+                    toPathname: newName,
+                })
+            });
+
+            await handleDelete(fromUrl);
+            setOpen(false)
+        } catch (error) {
+            // Handle error UI or display error message
+            console.error('Error renaming file:', error);
+            toast.error('Error renaming file:', {
+                description: `${error}`,
             })
-        })
-
-        handleDelete(fromUrl)
-
+        }
     }
 
     const handleDelete = async (url: string) => {
-        await fetch(`/api/file`, {
-            method: "DELETE",
-            body: JSON.stringify({
-                url,
+        try {
+            await fetch(`/api/file`, {
+                method: "DELETE",
+                body: JSON.stringify({
+                    url: url,
+                })
+            });
+        } catch (error) {
+            console.error('Error deleting file:', error);
+            toast.error('Error renaming file:', {
+                description: `${error}`,
             })
-        })
-
+        }
     }
 
     return (
         <>
-            <Dialog>
+            <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                     <Button variant="outline" size="icon">
                         <PencilSquareIcon className="size-4" />
