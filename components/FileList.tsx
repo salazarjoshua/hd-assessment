@@ -39,7 +39,7 @@ const FileList: React.FC<FileListProps> = ({ blobs }) => {
                             <TableCell>
                                 <div className="flex gap-4 items-center  justify-center">
                                     <DownloadButton downloadUrl={blob.downloadUrl}/>
-                                    <RenameButton />
+                                    <RenameButton pathname={blob.pathname} fromUrl={blob.url}/>
                                     <DeleteButton url={blob.url}/>
                                 </div>
                             </TableCell>
