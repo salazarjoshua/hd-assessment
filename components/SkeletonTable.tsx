@@ -27,7 +27,7 @@ const SkeletonTable = ({ length = 5 }: Props) => {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {[...Array(length)].map((index) => (
+                {[...Array(length)].map((_, index) => (
                     <TableRow key={index}>
                         <TableCell className="w-[80%] flex gap-4">
                             <Skeleton className="w-full h-[20px] rounded-full" />

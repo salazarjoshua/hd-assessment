@@ -24,7 +24,7 @@ const DeleteButton = ({ url, onDelete }: Props) => {
             // Call the onDelete callback to update the parent state
             onDelete(url);
 
-            toast.success('File deleted successfully');
+            toast('File deleted successfully');
         } catch (error) {
             toast.error('Error deleting file:', {
                 description: `${error}`,
