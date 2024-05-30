@@ -32,6 +32,7 @@ const FileUpload: React.FC = () => {
             const parsedBlobs = JSON.parse(storedBlobs);
             if (Array.isArray(parsedBlobs)) {
                 setBlobs(parsedBlobs);
+                console.log("Loaded blobs from localStorage:", parsedBlobs);
             } else {
                 console.error("Invalid blobs format in localStorage");
             }
@@ -40,8 +41,15 @@ const FileUpload: React.FC = () => {
 
     // Update localStorage whenever blobs state changes
     useEffect(() => {
+        if (blobs.length > 0) {
             localStorage.setItem('blobs', JSON.stringify(blobs));
+            console.log("Updated localStorage with blobs:", blobs);
+        } else {
+            localStorage.removeItem('blobs'); // Remove the 'blobs' item if the array is empty
+            console.log("Removed blobs from localStorage");
+        }
     }, [blobs]);
+
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(event.target.files || []);
@@ -130,7 +138,7 @@ const FileUpload: React.FC = () => {
 
     const handleRenameBlob = (oldUrl: string, newBlob: PutBlobResult) => {
         setBlobs((prevBlobs) => {
-            const updatedBlobs = prevBlobs.map(blob => 
+            const updatedBlobs = prevBlobs.map(blob =>
                 blob.url === oldUrl ? newBlob : blob
             );
             localStorage.setItem('blobs', JSON.stringify(updatedBlobs));
@@ -139,11 +147,8 @@ const FileUpload: React.FC = () => {
     };
 
     return (
+        <>
         <div className='w-full max-w-[600px] flex flex-col gap-4'>
-            {dogImage && (
-                <Image src={dogImage} alt="Dog" className="absolute bottom-4 right-4 size-40 object-cover bg-slate-100 rounded-lg" width={128} height={128} />
-            )}
-
             <form className="flex gap-4 mx-auto" onSubmit={handleUpload}>
                 <Input type="file" multiple onChange={handleFileChange} ref={fileInputRef} />
                 <Button disabled={files.length === 0} type='submit'>Upload</Button>
@@ -173,6 +178,10 @@ const FileUpload: React.FC = () => {
                 </DialogContent>
             </Dialog>
         </div>
+        {dogImage && (
+                <Image src={dogImage} alt="Dog" className="fixed bottom-4 right-4 size-20 md:size-40 object-cover bg-slate-100 rounded-lg" width={128} height={128} />
+            )}
+        </>
     );
 };
 
