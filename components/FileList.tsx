@@ -15,10 +15,11 @@ import Link from "next/link";
 
 interface FileListProps {
     blobs: PutBlobResult[];
+    onFileListUpdate: (updatedBlobs: PutBlobResult[]) => void;
 }
 
-
-const FileList: React.FC<FileListProps> = ({ blobs }) => {
+const FileList: React.FC<FileListProps> = ({ blobs, onFileListUpdate }) => {
+    console.log("FileList received blobs:", blobs);
 
     return (
         <>
@@ -37,10 +38,10 @@ const FileList: React.FC<FileListProps> = ({ blobs }) => {
                                 <Link href={blob.url}>{blob.pathname}</Link>
                             </TableCell>
                             <TableCell>
-                                <div className="flex gap-4 items-center  justify-center">
-                                    <DownloadButton downloadUrl={blob.downloadUrl}/>
-                                    <RenameButton pathname={blob.pathname} fromUrl={blob.url}/>
-                                    <DeleteButton url={blob.url}/>
+                                <div className="flex gap-4 items-center justify-center">
+                                    <DownloadButton downloadUrl={blob.downloadUrl} />
+                                    <RenameButton pathname={blob.pathname} fromUrl={blob.url} />
+                                    <DeleteButton url={blob.url} />
                                 </div>
                             </TableCell>
                         </TableRow>
@@ -51,4 +52,4 @@ const FileList: React.FC<FileListProps> = ({ blobs }) => {
     )
 }
 
-export default FileList
+export default FileList;
