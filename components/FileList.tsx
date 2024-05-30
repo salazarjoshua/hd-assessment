@@ -20,8 +20,6 @@ interface FileListProps {
 }
 
 const FileList: React.FC<FileListProps> = ({ blobs, onDeleteBlob, onRename }) => {
-    console.log("FileList received blobs:", blobs);
-
     return (
         <>
             <Table>
@@ -33,15 +31,15 @@ const FileList: React.FC<FileListProps> = ({ blobs, onDeleteBlob, onRename }) =>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {blobs.map((blob, index) => (
-                        <TableRow key={index}>
+                    {blobs.map((blob) => (
+                        <TableRow key={blob.url}>
                             <TableCell className="w-[80%] flex gap-4">
                                 <Link href={blob.url}>{blob.pathname}</Link>
                             </TableCell>
                             <TableCell>
                                 <div className="flex gap-4 items-center justify-center">
                                     <DownloadButton downloadUrl={blob.downloadUrl} />
-                                    <RenameButton pathname={blob.pathname} fromUrl={blob.url} onRename={onRename} />
+                                    <RenameButton blob={blob} onRename={onRename} />
                                     <DeleteButton url={blob.url} onDelete={onDeleteBlob} />
                                 </div>
                             </TableCell>

@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button'
 import { PencilSquareIcon } from '@heroicons/react/24/outline'
 import {
@@ -18,22 +18,24 @@ import { toast } from "sonner"
 import { PutBlobResult } from '@vercel/blob';
 
 type Props = {
-    pathname: string;
-    fromUrl: string;
+    blob: PutBlobResult;
     onRename: (oldUrl: string, newBlob: PutBlobResult) => void;
 }
 
-const RenameButton = ({ pathname, fromUrl, onRename }: Props) => {
+const RenameButton = ({ blob, onRename }: Props) => {
     const [open, setOpen] = useState(false);
-    const [newName, setNewName] = useState(pathname);
+    const [newName, setNewName] = useState(blob.pathname);
 
-    
+    useEffect(() => {
+        setNewName(blob.pathname);
+    }, [blob]);
+
     const handleRename = async () => {
         try {
             const response = await fetch(`/api/rename`, {
                 method: "PUT",
                 body: JSON.stringify({
-                    fromUrl: fromUrl,
+                    fromUrl: blob.url,
                     toPathname: newName,
                 })
             });
@@ -44,12 +46,11 @@ const RenameButton = ({ pathname, fromUrl, onRename }: Props) => {
 
             const newBlob = await response.json();
 
-            await handleDelete(fromUrl);
+            await handleDelete(blob.url);
 
-            onRename(fromUrl, newBlob);
+            onRename(blob.url, newBlob);
             setOpen(false);
         } catch (error) {
-            // Handle error UI or display error message
             console.error('Error renaming file:', error);
             toast.error('Error renaming file:', {
                 description: `${error}`,
@@ -63,7 +64,7 @@ const RenameButton = ({ pathname, fromUrl, onRename }: Props) => {
                 method: "DELETE",
                 body: JSON.stringify({ 
                     url: url,
-                 })
+                })
             });
 
             if (!response.ok) {
@@ -119,4 +120,4 @@ const RenameButton = ({ pathname, fromUrl, onRename }: Props) => {
     )
 }
 
-export default RenameButton
+export default RenameButton;
