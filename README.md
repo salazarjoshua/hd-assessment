@@ -37,5 +37,7 @@ To run this project locally, follow these steps:
 
 1. Clone this repository to your local machine.
 2. Install the necessary dependencies by running `npm install`.
-3. Start the development server by running `npm run dev`.
-4. Open your browser and navigate to `http://localhost:3000` to view the project.
+3. Create your own Vercel Blob instance and generate an authentication token. Read more [here](https://vercel.com/blob).
+4. Update the `.env.local` file with your Vercel Blob URL and authentication token.
+5. Start the development server by running `npm run dev`.
+6. Open your browser and navigate to `http://localhost:3000` to view the project.
