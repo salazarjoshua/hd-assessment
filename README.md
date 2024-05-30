@@ -1,10 +1,10 @@
-# HD Assessment
+# Vercel Blob File Upload
 
 ## Demo
 [Live Demo](https://hd-assessment.vercel.app/)
 
 ## About the Project
-HD Assessment is a Next.js application that utilizes Vercel Blob for uploading multiple files. It includes additional action buttons such as Download, Rename, and Delete for managing uploaded files.
+Vercel Blob File Upload is a Next.js application that utilizes Vercel Blob for uploading multiple files. It includes additional action buttons such as Download, Rename, and Delete for managing uploaded files.
 
 ## Built With
 - Next.js
