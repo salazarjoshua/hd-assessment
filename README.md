@@ -17,7 +17,7 @@ Vercel Blob File Upload is a Next.js application that utilizes Vercel Blob for u
 ### File Upload
 - Allows multiple file uploads
 - Rejects files over 5MB
-- Accepts file types: text/plain, text/xml, application/json, application/pdf, image/*, audio/*, and video/*
+- Accepts file types: `text/plain`, `text/xml`, `application/json`, `application/pdf`, `image/*`, `audio/*`, and `video/*`
 - Fetches dog image from API during upload initiation, successful upload, and when files are uploaded
 
 ### File List
