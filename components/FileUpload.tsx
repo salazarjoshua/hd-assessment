@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense, lazy } from 'react';
+import SkeletonTable from './SkeletonTable';
 import type { PutBlobResult } from '@vercel/blob';
 import Image from 'next/image';
 import {
@@ -13,8 +14,9 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import FileList from './FileList';
 import { toast } from "sonner"
+
+const FileList = lazy(() => import('./FileList'));
 
 const FileUpload: React.FC = () => {
     const [files, setFiles] = useState<File[]>([]);
@@ -22,8 +24,10 @@ const FileUpload: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [dogImage, setDogImage] = useState<string | null>(null);
     const [statusMessage, setStatusMessage] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [blobs, setBlobs] = useState<PutBlobResult[]>([]);
+    const [showSkeleton, setShowSkeleton] = useState<boolean>(true);
 
     // Load blobs from localStorage on component mount
     useEffect(() => {
@@ -43,13 +47,16 @@ const FileUpload: React.FC = () => {
     useEffect(() => {
         if (blobs.length > 0) {
             localStorage.setItem('blobs', JSON.stringify(blobs));
-            console.log("Updated localStorage with blobs:", blobs);
+            const timer = setTimeout(() => {
+                setShowSkeleton(false);
+            }, 2000); // 2 seconds delay
+
+            return () => clearTimeout(timer);
         } else {
             localStorage.removeItem('blobs'); // Remove the 'blobs' item if the array is empty
             console.log("Removed blobs from localStorage");
         }
     }, [blobs]);
-
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(event.target.files || []);
@@ -86,6 +93,8 @@ const FileUpload: React.FC = () => {
     const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (files.length === 0) return;
+
+        setLoading(true); // Start loading
 
         try {
             // Uploading begins: fetch a dog image
@@ -129,6 +138,8 @@ const FileUpload: React.FC = () => {
             setStatusMessage('Upload failed');
             setErrorFiles(['Upload failed. Please try again.']);
             setIsOpen(true);
+        } finally {
+            setLoading(false); // End loading
         }
     };
 
@@ -148,37 +159,42 @@ const FileUpload: React.FC = () => {
 
     return (
         <>
-        <div className='w-full max-w-[600px] flex flex-col gap-4'>
-            <form className="flex gap-4 mx-auto" onSubmit={handleUpload}>
-                <Input type="file" multiple onChange={handleFileChange} ref={fileInputRef} />
-                <Button disabled={files.length === 0} type='submit'>Upload</Button>
-            </form>
+            <div className='w-full max-w-[600px] flex flex-col gap-4'>
+                <form className="flex gap-4 mx-auto" onSubmit={handleUpload}>
+                    <Input type="file" multiple onChange={handleFileChange} ref={fileInputRef} />
+                    <Button disabled={files.length === 0 || loading} type='submit'>
+                        {loading ? 'Uploading...' : 'Upload'}
+                    </Button>
+                </form>
 
-            {blobs.length > 0 && <FileList blobs={blobs} onDeleteBlob={handleDeleteBlob} onRename={handleRenameBlob} />}
+                {blobs.length > 0 && (
+                    <Suspense fallback={<SkeletonTable length={blobs.length} />}>
+                        {showSkeleton ? <SkeletonTable length={blobs.length} /> : <FileList blobs={blobs} onDeleteBlob={handleDeleteBlob} onRename={handleRenameBlob} />}
+                    </Suspense>
+                )}
 
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogTrigger />
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Upload Error</DialogTitle>
-                        <DialogDescription>
-                            {statusMessage === 'Upload failed' ?
-                                null
-                                :
-                                <p>These files are over 5MB:</p>
-                            }
+                <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                    <DialogTrigger />
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Upload Error</DialogTitle>
+                            <DialogDescription>
+                                {statusMessage === 'Upload failed' ?
+                                    null :
+                                    <p>These files are over 5MB:</p>
+                                }
 
-                            <ul className="list-disc list-inside">
-                                {errorFiles?.map((file, index) => (
-                                    <li key={index}>{file}</li>
-                                ))}
-                            </ul>
-                        </DialogDescription>
-                    </DialogHeader>
-                </DialogContent>
-            </Dialog>
-        </div>
-        {dogImage && (
+                                <ul className="list-disc list-inside">
+                                    {errorFiles?.map((file, index) => (
+                                        <li key={index}>{file}</li>
+                                    ))}
+                                </ul>
+                            </DialogDescription>
+                        </DialogHeader>
+                    </DialogContent>
+                </Dialog>
+            </div>
+            {dogImage && (
                 <Image src={dogImage} alt="Dog" className="fixed bottom-4 right-4 size-20 md:size-40 object-cover bg-slate-100 rounded-lg" width={128} height={128} />
             )}
         </>
