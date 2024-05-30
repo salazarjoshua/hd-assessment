@@ -25,12 +25,14 @@ type Props = {
 const RenameButton = ({ blob, onRename }: Props) => {
     const [open, setOpen] = useState(false);
     const [newName, setNewName] = useState(blob.pathname);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     useEffect(() => {
         setNewName(blob.pathname);
     }, [blob]);
 
     const handleRename = async () => {
+        setIsSaving(true);
         try {
             const response = await fetch(`/api/rename`, {
                 method: "PUT",
@@ -49,12 +51,15 @@ const RenameButton = ({ blob, onRename }: Props) => {
             await handleDelete(blob.url);
 
             onRename(blob.url, newBlob);
-            setOpen(false);
         } catch (error) {
             console.error('Error renaming file:', error);
             toast.error('Error renaming file:', {
                 description: `${error}`,
             })
+        } finally {
+            setOpen(false);
+            setIsSaving(false);
+            toast('File renamed successfully');
         }
     }
 
@@ -112,7 +117,9 @@ const RenameButton = ({ blob, onRename }: Props) => {
                                 Cancel
                             </Button>
                         </DialogClose>
-                        <Button type="button" onClick={handleRename}>Save</Button>
+                        <Button type="button" disabled={isSaving ? true : false} onClick={handleRename}>
+                            {isSaving ? 'Saving...' : 'Save'}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
