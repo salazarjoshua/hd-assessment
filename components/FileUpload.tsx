@@ -32,7 +32,6 @@ const FileUpload: React.FC = () => {
             const parsedBlobs = JSON.parse(storedBlobs);
             if (Array.isArray(parsedBlobs)) {
                 setBlobs(parsedBlobs);
-                console.log("Loaded blobs from localStorage:", parsedBlobs);
             } else {
                 console.error("Invalid blobs format in localStorage");
             }
@@ -42,7 +41,6 @@ const FileUpload: React.FC = () => {
     // Update localStorage whenever blobs state changes
     useEffect(() => {
             localStorage.setItem('blobs', JSON.stringify(blobs));
-            console.log("Updated localStorage with blobs:", blobs);
     }, [blobs]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,6 +128,16 @@ const FileUpload: React.FC = () => {
         setBlobs((prevBlobs) => prevBlobs.filter(blob => blob.url !== url));
     };
 
+    const handleRenameBlob = (oldUrl: string, newBlob: PutBlobResult) => {
+        setBlobs((prevBlobs) => {
+            const updatedBlobs = prevBlobs.map(blob => 
+                blob.url === oldUrl ? newBlob : blob
+            );
+            localStorage.setItem('blobs', JSON.stringify(updatedBlobs));
+            return updatedBlobs;
+        });
+    };
+
     return (
         <div className='w-full max-w-[600px] flex flex-col gap-4'>
             {dogImage && (
@@ -141,7 +149,7 @@ const FileUpload: React.FC = () => {
                 <Button disabled={files.length === 0} type='submit'>Upload</Button>
             </form>
 
-            {blobs.length > 0 && <FileList blobs={blobs} onDeleteBlob={handleDeleteBlob} />}
+            {blobs.length > 0 && <FileList blobs={blobs} onDeleteBlob={handleDeleteBlob} onRename={handleRenameBlob} />}
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger />

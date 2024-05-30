@@ -15,19 +15,22 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+import { PutBlobResult } from '@vercel/blob';
 
 type Props = {
     pathname: string;
     fromUrl: string;
+    onRename: (oldUrl: string, newBlob: PutBlobResult) => void;
 }
 
-const RenameButton = ({ pathname, fromUrl }: Props) => {
+const RenameButton = ({ pathname, fromUrl, onRename }: Props) => {
     const [open, setOpen] = useState(false);
     const [newName, setNewName] = useState(pathname);
 
+    
     const handleRename = async () => {
         try {
-            await fetch(`/api/rename`, {
+            const response = await fetch(`/api/rename`, {
                 method: "PUT",
                 body: JSON.stringify({
                     fromUrl: fromUrl,
@@ -35,8 +38,16 @@ const RenameButton = ({ pathname, fromUrl }: Props) => {
                 })
             });
 
+            if (!response.ok) {
+                throw new Error('Error renaming file');
+            }
+
+            const newBlob = await response.json();
+
             await handleDelete(fromUrl);
-            setOpen(false)
+
+            onRename(fromUrl, newBlob);
+            setOpen(false);
         } catch (error) {
             // Handle error UI or display error message
             console.error('Error renaming file:', error);
@@ -48,17 +59,21 @@ const RenameButton = ({ pathname, fromUrl }: Props) => {
 
     const handleDelete = async (url: string) => {
         try {
-            await fetch(`/api/file`, {
+            const response = await fetch(`/api/file`, {
                 method: "DELETE",
-                body: JSON.stringify({
+                body: JSON.stringify({ 
                     url: url,
-                })
+                 })
             });
+
+            if (!response.ok) {
+                throw new Error('Delete failed');
+            }
+
         } catch (error) {
-            console.error('Error deleting file:', error);
-            toast.error('Error renaming file:', {
+            toast.error('Error deleting file:', {
                 description: `${error}`,
-            })
+            });
         }
     }
 
