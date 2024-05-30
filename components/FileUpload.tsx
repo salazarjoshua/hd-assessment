@@ -1,7 +1,6 @@
-// components/FileUpload.tsx
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { PutBlobResult } from '@vercel/blob';
 import Image from 'next/image';
 import {
@@ -11,13 +10,11 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-    DialogFooter
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import FileList from './FileList';
-
-
+import { toast } from "sonner"
 
 const FileUpload: React.FC = () => {
     const [files, setFiles] = useState<File[]>([]);
@@ -27,6 +24,24 @@ const FileUpload: React.FC = () => {
     const [statusMessage, setStatusMessage] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [blobs, setBlobs] = useState<PutBlobResult[]>([]);
+
+    // Load blobs from localStorage on component mount
+    useEffect(() => {
+        const storedBlobs = localStorage.getItem('blobs');
+        if (storedBlobs) {
+            const parsedBlobs = JSON.parse(storedBlobs);
+            if (Array.isArray(parsedBlobs)) {
+                setBlobs(parsedBlobs);
+            } else {
+                console.error("Invalid blobs format in localStorage");
+            }
+        }
+    }, []);
+
+    // Update localStorage whenever blobs state changes
+    useEffect(() => {
+            localStorage.setItem('blobs', JSON.stringify(blobs));
+    }, [blobs]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(event.target.files || []);
@@ -46,7 +61,6 @@ const FileUpload: React.FC = () => {
         }
     };
 
-
     const fetchDogImage = async () => {
         try {
             const response = await fetch('https://dog.ceo/api/breeds/image/random');
@@ -54,6 +68,9 @@ const FileUpload: React.FC = () => {
             return data.message;
         } catch (error) {
             console.error('Error fetching dog image:', error);
+            toast.error('Error fetching dog image', {
+                description: `${error}`,
+            });
             return null;
         }
     };
@@ -66,7 +83,7 @@ const FileUpload: React.FC = () => {
             // Uploading begins: fetch a dog image
             const startDogImage = await fetchDogImage();
             setDogImage(startDogImage);
-            setStatusMessage('Uploading ⌛️');
+            toast("Uploading ⌛️");
 
             const uploadedBlobs: PutBlobResult[] = [];
 
@@ -84,13 +101,12 @@ const FileUpload: React.FC = () => {
                 uploadedBlobs.push(newBlob);
             }
 
-            setBlobs(uploadedBlobs);
+            setBlobs((prevBlobs) => [...prevBlobs, ...uploadedBlobs]);
 
             // Uploading done: fetch a new dog image
             const successDogImage = await fetchDogImage();
             setDogImage(successDogImage);
-            setStatusMessage('Upload done ✅');
-            // await new Promise(resolve => setTimeout(resolve, 3000)); // Add delay
+            toast.success("Upload done");
 
             // Clear files after successful upload
             setFiles([]);
@@ -101,27 +117,39 @@ const FileUpload: React.FC = () => {
             // Uploading error: fetch a new dog image
             const failDogImage = await fetchDogImage();
             setDogImage(failDogImage);
-            setStatusMessage('Upload failed ⚠️❌🚨');
+            toast.error('Upload failed');
+            setStatusMessage('Upload failed');
             setErrorFiles(['Upload failed. Please try again.']);
             setIsOpen(true);
         }
     };
 
+    const handleDeleteBlob = (url: string) => {
+        setBlobs((prevBlobs) => prevBlobs.filter(blob => blob.url !== url));
+    };
+
+    const handleRenameBlob = (oldUrl: string, newBlob: PutBlobResult) => {
+        setBlobs((prevBlobs) => {
+            const updatedBlobs = prevBlobs.map(blob => 
+                blob.url === oldUrl ? newBlob : blob
+            );
+            localStorage.setItem('blobs', JSON.stringify(updatedBlobs));
+            return updatedBlobs;
+        });
+    };
+
     return (
         <div className='w-full max-w-[600px] flex flex-col gap-4'>
+            {dogImage && (
+                <Image src={dogImage} alt="Dog" className="absolute bottom-4 right-4 size-40 object-cover bg-slate-100 rounded-lg" width={128} height={128} />
+            )}
+
             <form className="flex gap-4 mx-auto" onSubmit={handleUpload}>
                 <Input type="file" multiple onChange={handleFileChange} ref={fileInputRef} />
                 <Button disabled={files.length === 0} type='submit'>Upload</Button>
             </form>
 
-            {dogImage && (
-                <div className="mt-4 flex items-center justify-center gap-4">
-                    <Image src={dogImage} alt="Dog" className="size-10 object-cover bg-slate-100 rounded-lg" width={128} height={128} />
-                    <p>{statusMessage}</p>
-                </div>
-            )}
-
-            {blobs.length > 0 && <FileList blobs={blobs} />}
+            {blobs.length > 0 && <FileList blobs={blobs} onDeleteBlob={handleDeleteBlob} onRename={handleRenameBlob} />}
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger />
@@ -129,7 +157,12 @@ const FileUpload: React.FC = () => {
                     <DialogHeader>
                         <DialogTitle>Upload Error</DialogTitle>
                         <DialogDescription>
-                            <p>These files are over 5MB:</p>
+                            {statusMessage === 'Upload failed' ?
+                                null
+                                :
+                                <p>These files are over 5MB:</p>
+                            }
+
                             <ul className="list-disc list-inside">
                                 {errorFiles?.map((file, index) => (
                                     <li key={index}>{file}</li>

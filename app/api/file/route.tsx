@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob';
+import { put, del } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -14,4 +14,11 @@ export async function POST(request: Request): Promise<NextResponse> {
   } else {
     return NextResponse.json({ message: "No files detected" });
   }
+}
+
+export async function DELETE(request: Request): Promise<NextResponse> {
+  const json = await request.json()
+  console.log(json)
+  await del(json.url)
+  return NextResponse.json({})
 }
