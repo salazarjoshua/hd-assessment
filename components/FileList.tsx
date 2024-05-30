@@ -15,16 +15,16 @@ import Link from "next/link";
 
 interface FileListProps {
     blobs: PutBlobResult[];
-    onFileListUpdate: (updatedBlobs: PutBlobResult[]) => void;
+    onDeleteBlob: (url: string) => void;
 }
 
-const FileList: React.FC<FileListProps> = ({ blobs, onFileListUpdate }) => {
+const FileList: React.FC<FileListProps> = ({ blobs, onDeleteBlob }) => {
     console.log("FileList received blobs:", blobs);
 
     return (
         <>
             <Table>
-                <TableCaption>A list of your uploaded images.</TableCaption>
+                <TableCaption>A list of your uploaded files.</TableCaption>
                 <TableHeader>
                     <TableRow>
                         <TableHead className="w-[80%]">Files</TableHead>
@@ -41,7 +41,7 @@ const FileList: React.FC<FileListProps> = ({ blobs, onFileListUpdate }) => {
                                 <div className="flex gap-4 items-center justify-center">
                                     <DownloadButton downloadUrl={blob.downloadUrl} />
                                     <RenameButton pathname={blob.pathname} fromUrl={blob.url} />
-                                    <DeleteButton url={blob.url} />
+                                    <DeleteButton url={blob.url} onDelete={onDeleteBlob} />
                                 </div>
                             </TableCell>
                         </TableRow>

@@ -41,10 +41,8 @@ const FileUpload: React.FC = () => {
 
     // Update localStorage whenever blobs state changes
     useEffect(() => {
-        if (blobs.length > 0) {
             localStorage.setItem('blobs', JSON.stringify(blobs));
             console.log("Updated localStorage with blobs:", blobs);
-        }
     }, [blobs]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +126,10 @@ const FileUpload: React.FC = () => {
         }
     };
 
+    const handleDeleteBlob = (url: string) => {
+        setBlobs((prevBlobs) => prevBlobs.filter(blob => blob.url !== url));
+    };
+
     return (
         <div className='w-full max-w-[600px] flex flex-col gap-4'>
             {dogImage && (
@@ -139,7 +141,7 @@ const FileUpload: React.FC = () => {
                 <Button disabled={files.length === 0} type='submit'>Upload</Button>
             </form>
 
-            {blobs.length > 0 && <FileList blobs={blobs} onFileListUpdate={setBlobs} />}
+            {blobs.length > 0 && <FileList blobs={blobs} onDeleteBlob={handleDeleteBlob} />}
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger />
