@@ -23,24 +23,20 @@ const FileUpload: React.FC = () => {
     const [dogImage, setDogImage] = useState<string | null>(null);
     const [statusMessage, setStatusMessage] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    // const [blobs, setBlobs] = useState<PutBlobResult[]>([]);
+    const [blobs, setBlobs] = useState<PutBlobResult[]>([]);
 
-    // // Load blobs from localStorage on component mount
-    // useEffect(() => {
-    //     const storedBlobs = localStorage.getItem('blobs');
-    //     if (storedBlobs) {
-    //         const parsedBlobs = JSON.parse(storedBlobs);
-    //         if (Array.isArray(parsedBlobs)) {
-    //             setBlobs(parsedBlobs);
-    //         } else {
-    //             console.error("Invalid blobs format in localStorage");
-    //         }
-    //     }
-    // }, []);
-
-    const storedBlobs = localStorage.getItem('blobs');
-    const initialBlobs: PutBlobResult[] = storedBlobs ? JSON.parse(storedBlobs) : [];
-    const [blobs, setBlobs] = useState<PutBlobResult[]>(initialBlobs);
+    // Load blobs from localStorage on component mount
+    useEffect(() => {
+        const storedBlobs = localStorage.getItem('blobs');
+        if (storedBlobs) {
+            const parsedBlobs = JSON.parse(storedBlobs);
+            if (Array.isArray(parsedBlobs)) {
+                setBlobs(parsedBlobs);
+            } else {
+                console.error("Invalid blobs format in localStorage");
+            }
+        }
+    }, []);
 
     // Update localStorage whenever blobs state changes
     useEffect(() => {
